@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-const machineId = process.env.MACHINE_ID || "";
+const machineId = process.env.FLY_MACHINE_ID || process.env.MACHINE_ID || "";
 const routerHost = process.env.ROUTER_HOST || "motsy-router.fly.dev";
 
 export default defineConfig({
