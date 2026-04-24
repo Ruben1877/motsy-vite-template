@@ -19,7 +19,6 @@ export default defineConfig({
           protocol: "wss",
           host: routerHost,
           clientPort: 443,
-          path: `/${machineId}/`,
         }
       : undefined,
   },
