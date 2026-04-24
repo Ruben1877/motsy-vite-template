@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
 const machineId = process.env.FLY_MACHINE_ID || process.env.MACHINE_ID || "";
-const routerHost = process.env.ROUTER_HOST || "motsy-router.fly.dev";
+const routerHost = process.env.ROUTER_HOST || "preview.motsy.dev";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
