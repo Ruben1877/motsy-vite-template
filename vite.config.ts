@@ -2,9 +2,46 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import fs from "fs";
 
 const machineId = process.env.FLY_MACHINE_ID || process.env.MACHINE_ID || "";
 const routerHost = process.env.ROUTER_HOST || "preview.motsy.dev";
+
+const STATIC_INCLUDE = [
+  "react",
+  "react-dom",
+  "react-dom/client",
+  "react/jsx-runtime",
+  "react/jsx-dev-runtime",
+];
+
+function detectReactUsingDeps(): string[] {
+  try {
+    const pkg = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, "./package.json"), "utf8"),
+    );
+    const deps = Object.keys(pkg.dependencies || {});
+    const result: string[] = [];
+    for (const name of deps) {
+      if (name === "react" || name === "react-dom") continue;
+      try {
+        const depPkgPath = path.resolve(__dirname, "node_modules", name, "package.json");
+        if (!fs.existsSync(depPkgPath)) continue;
+        const depPkg = JSON.parse(fs.readFileSync(depPkgPath, "utf8"));
+        const peers = depPkg.peerDependencies || {};
+        const directDeps = depPkg.dependencies || {};
+        if (peers.react !== undefined || directDeps.react !== undefined) {
+          result.push(name);
+        }
+      } catch {
+        // skip unreadable dep
+      }
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -34,52 +71,6 @@ export default defineConfig({
     dedupe: ["react", "react-dom"],
   },
   optimizeDeps: {
-    include: [
-      "react",
-      "react-dom",
-      "react-dom/client",
-      "react/jsx-runtime",
-      "react/jsx-dev-runtime",
-      "react-router-dom",
-      "lucide-react",
-      "framer-motion",
-      "sonner",
-      "vaul",
-      "cmdk",
-      "input-otp",
-      "react-hook-form",
-      "react-day-picker",
-      "react-resizable-panels",
-      "embla-carousel-react",
-      "recharts",
-      "@hookform/resolvers/zod",
-      "@radix-ui/react-accordion",
-      "@radix-ui/react-alert-dialog",
-      "@radix-ui/react-aspect-ratio",
-      "@radix-ui/react-avatar",
-      "@radix-ui/react-checkbox",
-      "@radix-ui/react-collapsible",
-      "@radix-ui/react-context-menu",
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
-      "@radix-ui/react-hover-card",
-      "@radix-ui/react-label",
-      "@radix-ui/react-menubar",
-      "@radix-ui/react-navigation-menu",
-      "@radix-ui/react-popover",
-      "@radix-ui/react-progress",
-      "@radix-ui/react-radio-group",
-      "@radix-ui/react-scroll-area",
-      "@radix-ui/react-select",
-      "@radix-ui/react-separator",
-      "@radix-ui/react-slider",
-      "@radix-ui/react-slot",
-      "@radix-ui/react-switch",
-      "@radix-ui/react-tabs",
-      "@radix-ui/react-toast",
-      "@radix-ui/react-toggle",
-      "@radix-ui/react-toggle-group",
-      "@radix-ui/react-tooltip",
-    ],
+    include: [...STATIC_INCLUDE, ...detectReactUsingDeps()],
   },
 });
