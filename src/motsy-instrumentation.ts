@@ -70,11 +70,54 @@ function postHeightThrottled(): void {
   postHeight();
 }
 
+/**
+ * Phase 2.1.5.1 Bug #3 — forward Cmd/Ctrl+wheel events au parent canvas.
+ * Sans ça, le wheel inside iframe trigger le browser zoom natif au lieu
+ * du canvas zoom (le wheel listener parent n'est jamais notifié car
+ * l'event est dispatché sur le contentDocument iframe, pas le parent).
+ * On preventDefault local + postMessage `motsy:wheel` au parent qui
+ * reproduit la logique anchored-zoom.
+ */
+function forwardWheelToParent(e: WheelEvent): void {
+  if (window.parent === window) return;
+  // Seulement forward si modifier (zoom), sinon laisser scroll natif
+  // pour l'user qui scroll dans son site.
+  if (!e.ctrlKey && !e.metaKey) return;
+  try {
+    e.preventDefault();
+    window.parent.postMessage(
+      {
+        type: "motsy:wheel",
+        deltaX: e.deltaX,
+        deltaY: e.deltaY,
+        ctrlKey: e.ctrlKey,
+        metaKey: e.metaKey,
+        clientX: e.clientX,
+        clientY: e.clientY,
+      },
+      "*",
+    );
+  } catch {
+    // silent
+  }
+}
+
 if (typeof window !== "undefined") {
   cachedDevice = getDeviceFromUrl();
   injectDeviceStyles(cachedDevice);
 
   if (window.parent !== window) {
+    // Bug #3 — wheel forward (passive: false pour pouvoir preventDefault).
+    try {
+      document.addEventListener("wheel", forwardWheelToParent, {
+        passive: false,
+        capture: true,
+      });
+    } catch {
+      // silent
+    }
+
+
     // Post initial après hydratation React (petit délai pour laisser
     // le DOM se stabiliser).
     if (document.readyState === "complete") {
