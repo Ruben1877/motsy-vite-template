@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Tailwind v4 CSS-first mode (sans tailwind.config.* legacy) nécessite une
+ * directive @source explicite pour scanner les fichiers source. Sans ça, le
+ * scanner JIT peut rater les classes utilisées dans certains TSX (HMR,
+ * components/pages ajoutés à chaud par le LLM) → layout cassé en runtime.
+ * Path relatif au présent CSS (src/index.css) → scan src/**.
+ * Cf. https://tailwindcss.com/docs/detecting-classes-in-source-files
+ */
+@source "./**/*.{ts,tsx,jsx,js,html}";
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
