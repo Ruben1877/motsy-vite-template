@@ -25,8 +25,13 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  /* Bordure/input par défaut = NOIR semi-transparent (pas un gris CLAIR opaque).
+   * Couplé à la règle globale `* { border-color: var(--border) }` ci-dessous, un
+   * gris clair opaque produisait des bordures BLANCHES parasites sur tout rendu
+   * sombre qui oublie `class="dark"` sur <html>. Un noir transparent reste subtil
+   * sur fond clair ET devient invisible sur fond sombre → safe dans les 2 cas. */
+  --border: oklch(0 0 0 / 0.1);
+  --input: oklch(0 0 0 / 0.1);
   --ring: oklch(0.708 0 0);
   --radius: 0.625rem;
 }
